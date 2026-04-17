@@ -1,23 +1,32 @@
-require("dotenv").config();
-const axios = require("axios");
+const express = require("express");
+const app = express();
 
-async function createWebhook() {
-  const token = process.env.BLOCKCYPHER_TOKEN;
+app.use(express.json());
 
-  try {
-    const response = await axios.post(
-      `https://api.blockcypher.com/v1/btc/main/hooks?token=${token}`,
-      {
-        event: "confirmed-tx",
-        address: "bc1qc8vqearyta2zxtryuwedu6pdajnjuz4tcaj4wx",
-        url: "https://webhook-production-07d0.up.railway.app/webhook"
-      }
-    );
+// BlockCypher webhook
+app.post("/webhook", (req, res) => {
+    console.log("📩 BlockCypher Webhook Received:");
+    console.log(JSON.stringify(req.body, null, 2));
 
-    console.log(response.data);
-  } catch (error) {
-    console.error(error.response?.data || error.message);
-  }
-}
+    // Example transaction hash
+    if (req.body.hash) {
+        console.log("🧾 TX Hash:", req.body.hash);
+    }
 
-createWebhook();
+    // Example amount (satoshis)
+    if (req.body.total) {
+        console.log("💰 Amount:", req.body.total, "sats");
+    }
+
+    res.sendStatus(200);
+});
+
+// Test route
+app.get("/", (req, res) => {
+    res.send("Webhook is live 🚀");
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Running on port", PORT);
+});
